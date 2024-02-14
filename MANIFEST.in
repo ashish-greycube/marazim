@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include marazim *.css
+recursive-include marazim *.csv
+recursive-include marazim *.html
+recursive-include marazim *.ico
+recursive-include marazim *.js
+recursive-include marazim *.json
+recursive-include marazim *.md
+recursive-include marazim *.png
+recursive-include marazim *.py
+recursive-include marazim *.svg
+recursive-include marazim *.txt
+recursive-exclude marazim *.pyc
