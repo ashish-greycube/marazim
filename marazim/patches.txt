@@ -1,0 +1,2 @@
+marazim.patches.create_grace_days_amount_fields_in_customer_credit_limit
+marazim.patches.create_delivery_status_cf_in_sales_invoice

@@ -31,7 +31,7 @@ app_license = "MIT"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {"Payment Entry" : "public/js/payment_entry.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -95,13 +95,21 @@ app_license = "MIT"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-#	"*": {
-#		"on_update": "method",
-#		"on_cancel": "method",
-#		"on_trash": "method"
-#	}
-# }
+doc_events = {
+    "Stock Entry": {
+        "on_submit":  "marazim.api.end_transit_in_stock_entry",
+    },
+	"Sales Invoice": {
+		"on_submit": [
+            "marazim.api.check_grace_days_and_amount_for_si",
+            "marazim.api.auto_create_dn_from_si",
+            ]
+	},
+	"Delivery Note": {
+		"on_submit": ["marazim.api.update_delivery_status_cf_of_sales_invoice_from_dn"],
+        "on_cancel": ["marazim.api.update_delivery_status_cf_of_sales_invoice_from_dn"]
+	}    
+}
 
 # Scheduled Tasks
 # ---------------
