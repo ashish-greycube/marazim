@@ -55,7 +55,7 @@ def check_grace_days_and_amount_for_si(self,method):
 			if flt(customer_outstanding) > grace_details.grace_amount_cf:
 				message=(_("Grace limit has been crossed for customer {0}.<br> Total outstanding is {1} <br> Allowed grace days are {2} <br>Grace amount allowed after grace days is {3}")
 			  .format(customer, customer_outstanding,grace_details.grace_days_cf ,grace_details.grace_amount_cf))
-			frappe.throw(message)
+				frappe.throw(message)
 		else:
 			message=(_("Grace limit has been crossed for customer {0}.<br> Total outstanding is {1} <br> Allowed grace days are {2}")
 			.format(customer, customer_outstanding,grace_details.grace_days_cf))
