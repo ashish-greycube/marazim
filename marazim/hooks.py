@@ -57,7 +57,7 @@ doctype_js = {"Payment Entry" : "public/js/payment_entry.js"}
 # ------------
 
 # before_install = "marazim.install.before_install"
-# after_install = "marazim.install.after_install"
+after_install = "marazim.api.after_install_run_patches"
 
 # Uninstallation
 # ------------

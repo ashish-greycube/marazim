@@ -139,3 +139,9 @@ def end_transit_in_stock_entry(self,method):
 		end_transit=make_stock_in_entry(self.name)
 		end_transit.save(ignore_permissions=True)
 		frappe.msgprint("End Transit  {0}  is auto created in draft.".format(get_link_to_form('Stock Entry',end_transit.name)))
+
+def after_install_run_patches():
+	from marazim.patches.create_delivery_status_cf_in_sales_invoice import execute
+	execute()
+	from marazim.patches.create_grace_child_table_in_customer import execute
+	execute()
