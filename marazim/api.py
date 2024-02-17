@@ -98,7 +98,7 @@ def auto_create_dn_from_si(self,method):
 
 
 def find_connected_delivery_notes(against_sales_invoice):
-	connected_delivery_notes = frappe.db.sql("""SELECT UNIQUE(tdn.name)  
+	connected_delivery_notes = frappe.db.sql("""SELECT DISTINCT(tdn.name)  
 										  FROM `tabDelivery Note` as tdn inner join `tabDelivery Note Item` tdni on tdn.name =tdni.parent 
 							where tdni.against_sales_invoice =%s and tdn.docstatus=1 limit 1""",(against_sales_invoice),as_dict=True,debug=1
 	)
@@ -138,6 +138,8 @@ def update_delivery_status_cf_of_sales_invoice_from_dn(self,method):
 def end_transit_in_stock_entry(self,method):
 	if self.add_to_transit==1 and self.stock_entry_type=='Material Transfer' and self.items and self.items[0].material_request :
 		end_transit=make_stock_in_entry(self.name)
+		end_transit.from_warehouse=end_transit.get('items')[0].s_warehouse
+		end_transit.to_warehouse=end_transit.get('items')[0].t_warehouse
 		end_transit.save(ignore_permissions=True)
 		frappe.msgprint("End Transit  {0}  is auto created in draft.".format(get_link_to_form('Stock Entry',end_transit.name)))
 
