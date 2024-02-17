@@ -12,7 +12,7 @@ def get_grace_details(customer, company):
 
 	if customer:
 		grace_details = frappe.db.get_value(
-			"Customer Credit Limit",
+			"Customer Grace Limit CT",
 			{"parent": customer, "parenttype": "Customer", "company": company},
 			["grace_days_cf","grace_amount_cf"], as_dict=1
 		)
@@ -61,7 +61,6 @@ def check_grace_days_and_amount_for_si(self,method):
 			frappe.throw(message)
 
 def auto_create_dn_from_si(self,method):
-	# return logic is pending
 	if self.is_return==0:
 		dn_creted=make_delivery_note(self.name)
 		print('dn_creted',dn_creted)
@@ -69,21 +68,29 @@ def auto_create_dn_from_si(self,method):
 			dn=dn_creted.save(ignore_permissions=True)
 			frappe.db.set_value("Sales Invoice", self.name, 'delivery_status_cf', 'Created')
 			frappe.msgprint("Sales Invoice {0} status is changed to {1}".format(self.name,'Created'),alert=1)
-			msg="Delivery Note {0} is auto created".format(get_link_to_form("Delivery Note",dn.name))
+			msg="Delivery Note {0} is auto created<br> Please ensure DN is submitted before SI return is done".format(get_link_to_form("Delivery Note",dn.name))
 			frappe.msgprint(msg)
 			self.add_comment('Comment', text=msg)
 	elif self.is_return==1:
-		print('-'*10)
-		print(self.name,self.is_return,self.return_against)
 		# find the DN created and submitted, and return them in draft stage
 		if self.return_against:
 			connected_delivery_notes=find_connected_delivery_notes(self.return_against)
-			print('connected_delivery_notes',connected_delivery_notes)
 			if connected_delivery_notes and len(connected_delivery_notes)>0:
 				for dn in connected_delivery_notes:
 					create_returned_dn=make_sales_return(dn.name)
+					to_remove = []
+					for dn_return in create_returned_dn.items:
+						found_si_item=False
+						for si_return in self.items:
+							if dn_return.item_code==si_return.item_code:
+								found_si_item=True
+								dn_return.qty=si_return.qty
+								break
+						if found_si_item==False:
+							to_remove.append(dn_return)
+					[create_returned_dn.items.remove(d) for d in to_remove]
 					returned_dn=create_returned_dn.save(ignore_permissions=True)
-					msg="Return Delivery Note {0} is created. <br> Please check for correct qty and submit it".format(get_link_to_form("Delivery Note",returned_dn.name))
+					msg="Return Delivery Note {0} is created. <br> Please check for correct item,qty and submit it".format(get_link_to_form("Delivery Note",returned_dn.name))
 					frappe.msgprint(msg)
 					self.add_comment('Comment', text=msg)					
 
@@ -92,7 +99,7 @@ def auto_create_dn_from_si(self,method):
 def find_connected_delivery_notes(against_sales_invoice):
 	connected_delivery_notes = frappe.db.sql("""SELECT UNIQUE(tdn.name)  
 										  FROM `tabDelivery Note` as tdn inner join `tabDelivery Note Item` tdni on tdn.name =tdni.parent 
-							where tdni.against_sales_invoice =%s and tdn.docstatus=1 """,(against_sales_invoice),as_dict=True,debug=1
+							where tdni.against_sales_invoice =%s and tdn.docstatus=1 limit 1""",(against_sales_invoice),as_dict=True,debug=1
 	)
 	return connected_delivery_notes
 

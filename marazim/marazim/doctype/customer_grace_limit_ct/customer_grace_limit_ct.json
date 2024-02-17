@@ -1,0 +1,54 @@
+{
+ "actions": [],
+ "creation": "2024-02-17 07:25:18.618258",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "column_break_2",
+  "grace_days_cf",
+  "grace_amount_cf"
+ ],
+ "fields": [
+  {
+   "columns": 4,
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 3,
+   "description": "Days after which new sales invoice creation will stop if there are unpaid invoices.",
+   "fieldname": "grace_days_cf",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Grace Days"
+  },
+  {
+   "columns": 3,
+   "description": "After grace days are over, the total amount of sales invoice for which creation shall be allowed.",
+   "fieldname": "grace_amount_cf",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Grace Amount"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2024-02-17 07:25:18.618258",
+ "modified_by": "Administrator",
+ "module": "Marazim",
+ "name": "Customer Grace Limit CT",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}
