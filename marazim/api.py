@@ -6,6 +6,7 @@ from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_delivery_n
 from frappe.utils import get_link_to_form
 from erpnext.stock.doctype.stock_entry.stock_entry import make_stock_in_entry
 from erpnext.stock.doctype.delivery_note.delivery_note import make_sales_return
+from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
 def get_grace_details(customer, company):
 	grace_details = None
@@ -141,7 +142,41 @@ def end_transit_in_stock_entry(self,method):
 		frappe.msgprint("End Transit  {0}  is auto created in draft.".format(get_link_to_form('Stock Entry',end_transit.name)))
 
 def after_install_run_patches():
-	from marazim.patches.create_delivery_status_cf_in_sales_invoice import execute
-	execute()
-	from marazim.patches.create_grace_child_table_in_customer import execute
-	execute()
+	create_delivery_status_cf_in_sales_invoice()
+	create_grace_child_table_in_customer()
+
+def create_delivery_status_cf_in_sales_invoice():
+	custom_field = {
+		"Sales Invoice": [
+			{
+				"fieldname": "delivery_status_cf",
+				"label": "Delivery Status",
+				"fieldtype": "Select",
+				"insert_after": "update_billed_amount_in_sales_order",
+				"options": "\nCreated\nDelivered\nPartial Delivered\nCancelled\nReceived",
+				"read_only":1,
+				"is_custom_field":1,
+				"is_system_generated":0,
+				"allow_on_submit":1,
+				"translatable":0,
+				"no_copy":1
+			},			
+		]
+	}
+	create_custom_fields(custom_field, update=1)
+
+def create_grace_child_table_in_customer():
+	custom_field = {
+		"Customer": [
+			{
+				"fieldname": "credit_limits_ct",
+				"label": "Grace Limit",
+				"fieldtype": "Table",
+				"insert_after": "credit_limits",
+				"options":"Customer Grace Limit CT",
+				"is_custom_field":1,
+				"is_system_generated":0				
+			}
+		]
+	}
+	create_custom_fields(custom_field, update=1)	

@@ -1,2 +1,0 @@
-marazim.patches.create_delivery_status_cf_in_sales_invoice
-marazim.patches.create_grace_child_table_in_customer
