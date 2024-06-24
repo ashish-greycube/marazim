@@ -64,16 +64,19 @@ def check_grace_days_and_amount_for_si(self,method):
 def auto_create_dn_from_si(self,method):
 	if self.is_return==0:
 		dn_creted=make_delivery_note(self.name)
-		print('dn_creted',dn_creted)
 		if dn_creted:
 			dn=dn_creted.save(ignore_permissions=True)
 			frappe.db.set_value("Sales Invoice", self.name, 'delivery_status_cf', 'Created')
-			frappe.msgprint("Sales Invoice {0} status is changed to {1}".format(self.name,'Created'),alert=1)
+			msg_dn_st="Sales Invoice {0} delivery status is changed to {1}".format(self.name,'Created')
+			frappe.msgprint(msg_dn_st,alert=1)
+			dn_creted.add_comment('Comment', text=msg_dn_st)		
+			
 			msg="Delivery Note {0} is auto created<br> Please ensure DN is submitted before SI return is done".format(get_link_to_form("Delivery Note",dn.name))
 			frappe.msgprint(msg)
 			self.add_comment('Comment', text=msg)
+
 	elif self.is_return==1:
-		# find the DN created and submitted, and return them in draft stage
+		# find the DN created and submitted, and do a new return DN such that qty are as per SI return
 		if self.return_against:
 			connected_delivery_notes=find_connected_delivery_notes(self.return_against)
 			if connected_delivery_notes and len(connected_delivery_notes)>0:
@@ -91,10 +94,28 @@ def auto_create_dn_from_si(self,method):
 							to_remove.append(dn_return)
 					[create_returned_dn.items.remove(d) for d in to_remove]
 					returned_dn=create_returned_dn.save(ignore_permissions=True)
+					# when return SI is created, SI_return.dn_status='Created'
+					frappe.db.set_value("Sales Invoice", self.name, 'delivery_status_cf', 'Created')
+					msg_dn_st="Sales Invoice  Return {0} delivery status is changed to {1}".format(self.name,'Created')
+					frappe.msgprint(msg_dn_st,alert=1)
+					create_returned_dn.add_comment('Comment', text=msg_dn_st)	
+
 					msg="Return Delivery Note {0} is created. <br> Please check for correct item,qty and submit it".format(get_link_to_form("Delivery Note",returned_dn.name))
 					frappe.msgprint(msg)
-					self.add_comment('Comment', text=msg)					
-
+					self.add_comment('Comment', text=msg)		
+		else:
+			pass
+			print('not connected...SI is directly returned')
+		# SI is directly returned
+			# dn_creted=make_delivery_note(self.name)
+			# print('dn_creted',dn_creted)
+			# if dn_creted:
+			# 	dn=dn_creted.save(ignore_permissions=True)
+			# 	frappe.db.set_value("Sales Invoice", self.name, 'delivery_status_cf', 'Created')
+			# 	frappe.msgprint("Sales Invoice {0} delivery status is changed to {1}".format(self.name,'Created'),alert=1)
+			# 	msg="Delivery Note {0} is auto created for <b>direct return.</b> No connected SI.<br> Please check for correct item,qty and submit it".format(get_link_to_form("Delivery Note",dn.name))
+			# 	frappe.msgprint(msg)
+			# 	self.add_comment('Comment', text=msg)				
 
 
 def find_connected_delivery_notes(against_sales_invoice):
@@ -113,10 +134,20 @@ def update_delivery_status_cf_of_sales_invoice_from_dn(self,method):
 	if list_of_si and len(list_of_si)>0:
 		for si in list_of_si:
 			if self.docstatus==1:
-				# is_return_si=frappe.db.get_value("Sales Invoice", si, 'is_return')
 				if self.is_return==1:
+					# When DN returned is submited | Original_SI.dn_status='Received'
 					frappe.db.set_value("Sales Invoice", si, 'delivery_status_cf', 'Received')
-					frappe.msgprint("Sales Invoice {0} status is changed to {1}".format(si,'Received'),alert=1)
+					msg="Sales Invoice {0} status is changed to {1}".format(si,'Received')
+					frappe.msgprint(msg,alert=1)
+					self.add_comment('Comment', text=msg)
+					# When DN returned is submited | SI_return.dn_status='Delivered'
+					return_against_list=frappe.db.get_all("Sales Invoice", filters={'return_against': si},fields=['name'],)
+					if len(return_against_list)>0:
+						frappe.db.set_value("Sales Invoice", return_against_list[0].name, 'delivery_status_cf', 'Delivered')
+						msg_dn_st="Sales Invoice Return {0} status is changed to {1}".format(return_against_list[0].name,'Delivered')
+						frappe.msgprint(msg_dn_st,alert=1)
+						self.add_comment('Comment', text=msg_dn_st)						
+						
 				else:
 					partial_found=False
 					si_doc=frappe.get_doc('Sales Invoice',si)
@@ -126,13 +157,27 @@ def update_delivery_status_cf_of_sales_invoice_from_dn(self,method):
 							partial_found=True
 					if partial_found==True:
 						frappe.db.set_value("Sales Invoice", si_doc.name, 'delivery_status_cf', 'Partial Delivered')
-						frappe.msgprint("Sales Invoice {0} status is changed to {1}".format(si_doc.name,'Partial Delivered'),alert=1)
+						msg="Sales Invoice {0} status is changed to {1}".format(si_doc.name,'Partial Delivered')
+						frappe.msgprint(msg,alert=1)
+						self.add_comment('Comment', text=msg)
 					else:
 						frappe.db.set_value("Sales Invoice",si_doc.name, 'delivery_status_cf', 'Delivered')
-						frappe.msgprint("Sales Invoice {0} status is changed to {1}".format(si_doc.name,'Delivered'),alert=1)
+						msg="Sales Invoice {0} status is changed to {1}".format(si_doc.name,'Delivered')
+						frappe.msgprint(msg,alert=1)
+						self.add_comment('Comment', text=msg)
 			elif self.docstatus==2:	
+				# When DN returned is cancelled | Original_SI.dn_status='Cancelled'
 				frappe.db.set_value("Sales Invoice", si, 'delivery_status_cf', 'Cancelled')
-				frappe.msgprint("Sales Invoice {0} status is changed to {1}".format(si,'Cancelled'),alert=1)
+				msg="Sales Invoice {0} status is changed to {1}".format(si,'Cancelled')
+				frappe.msgprint(msg,alert=1)
+				self.add_comment('Comment', text=msg)
+				# When DN returned is cancelled | SI_return.dn_status='Cancelled'
+				return_against_list=frappe.db.get_all("Sales Invoice", filters={'return_against': si},fields=['name'],)
+				if len(return_against_list)>0:
+					frappe.db.set_value("Sales Invoice", return_against_list[0].name, 'delivery_status_cf', 'Cancelled')
+					msg_dn_st="Sales Invoice Return {0} status is changed to {1}".format(return_against_list[0].name,'Cancelled')
+					frappe.msgprint(msg_dn_st,alert=1)
+					self.add_comment('Comment', text=msg_dn_st)				
 
 
 def end_transit_in_stock_entry(self,method):
@@ -182,3 +227,6 @@ def create_grace_child_table_in_customer():
 		]
 	}
 	create_custom_fields(custom_field, update=1)	
+
+def check_is(self,method):
+	print(self.is_return,'===')
