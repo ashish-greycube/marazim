@@ -230,3 +230,11 @@ def create_grace_child_table_in_customer():
 
 def check_is(self,method):
 	print(self.is_return,'===')
+
+def check_qty_against_warehouse(self,method):
+	if self.is_return==0 and self.update_stock==0:
+		for item in self.items:
+			if item.qty > item.actual_qty:
+				message=(_("Row {0} : item {1} has required qty {2} which is greater than warehouse qty {3}. <br> Please correct to proceed."
+			   			.format(item.idx,item.item_name,item.qty,item.actual_qty)))
+				frappe.throw(message)	
