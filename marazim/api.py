@@ -234,7 +234,8 @@ def check_is(self,method):
 def check_qty_against_warehouse(self,method):
 	if self.is_return==0 and self.update_stock==0:
 		for item in self.items:
-			if item.qty > item.actual_qty:
+			is_stock_item = frappe.db.get_value('Item', item.item_code, 'is_stock_item')
+			if is_stock_item==1 and item.qty > item.actual_qty:
 				message=(_("Row {0} : item {1} has required qty {2} which is greater than warehouse qty {3}. <br> Please correct to proceed."
 			   			.format(item.idx,item.item_name,item.qty,item.actual_qty)))
 				frappe.throw(message)	
