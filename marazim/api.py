@@ -62,7 +62,7 @@ def check_grace_days_and_amount_for_si(self,method):
 			frappe.throw(message)
 
 def auto_create_dn_from_si(self,method):
-	if self.is_return==0:
+	if self.is_return==0 and self.update_stock==0:
 		dn_creted=make_delivery_note(self.name)
 		if dn_creted:
 			dn=dn_creted.save(ignore_permissions=True)
@@ -75,7 +75,7 @@ def auto_create_dn_from_si(self,method):
 			frappe.msgprint(msg)
 			self.add_comment('Comment', text=msg)
 
-	elif self.is_return==1:
+	elif self.is_return==1 and self.update_stock==0:
 		# find the DN created and submitted, and do a new return DN such that qty are as per SI return
 		if self.return_against:
 			connected_delivery_notes=find_connected_delivery_notes(self.return_against)
