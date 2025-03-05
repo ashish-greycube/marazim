@@ -19,6 +19,11 @@ frappe.ui.form.on('Customer Visit', {
 		  return;
 		}
 		frappe.dom.freeze(__("Fetching your geolocation") + "...");
+		const options = {
+			enableHighAccuracy: true,
+			timeout: 5000,
+			maximumAge: 0,
+		  };
 		navigator.geolocation.getCurrentPosition(
 		  async (position) => {
 			frm.set_value("latitude", position.coords.latitude);
@@ -38,6 +43,9 @@ frappe.ui.form.on('Customer Visit', {
 			  title: __("Geolocation Error"),
 			  indicator: "red"
 			});
+		  },
+		  (options) => {
+			console.log(options)
 		  }
 		);
 		frm.save()

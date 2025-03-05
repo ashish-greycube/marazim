@@ -72,8 +72,10 @@
   {
    "fieldname": "purpose_of_visit",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Purpose of Visit",
-   "options": "\nSales\nCollection\nReturn"
+   "options": "\nSales\nCollection\nReturn",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_ypc6o",
@@ -88,13 +90,15 @@
    "fieldname": "latitude",
    "fieldtype": "Float",
    "label": "Latitude",
-   "precision": "7"
+   "precision": "7",
+   "read_only": 1
   },
   {
    "fieldname": "longitude",
    "fieldtype": "Float",
    "label": "Longitude",
-   "precision": "7"
+   "precision": "7",
+   "read_only": 1
   },
   {
    "fieldname": "fetch_geolocation",
@@ -105,7 +109,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-04 15:47:56.770728",
+ "modified": "2025-03-05 09:31:19.628513",
  "modified_by": "Administrator",
  "module": "Marazim",
  "name": "Customer Visit",
