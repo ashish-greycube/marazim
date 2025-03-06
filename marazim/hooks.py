@@ -117,23 +117,13 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-#	"all": [
-#		"marazim.tasks.all"
-#	],
-#	"daily": [
-#		"marazim.tasks.daily"
-#	],
-#	"hourly": [
-#		"marazim.tasks.hourly"
-#	],
-#	"weekly": [
-#		"marazim.tasks.weekly"
-#	]
-#	"monthly": [
-#		"marazim.tasks.monthly"
-#	]
-# }
+scheduler_events = {
+	"cron": {
+        "0 1 * * *": [
+            "marazim.api.create_daily_customer_visit",
+        ]
+    },
+}
 
 # Testing
 # -------

@@ -3,7 +3,7 @@ from erpnext.selling.doctype.customer.customer import get_credit_limit, get_cust
 from frappe.utils import add_days,getdate,flt
 from frappe import _, msgprint, throw
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_delivery_note
-from frappe.utils import get_link_to_form
+from frappe.utils import get_link_to_form, today, nowdate, get_weekday
 from erpnext.stock.doctype.stock_entry.stock_entry import make_stock_in_entry
 from erpnext.stock.doctype.delivery_note.delivery_note import make_sales_return
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
@@ -239,3 +239,22 @@ def check_qty_against_warehouse(self,method):
 				message=(_("Row {0} : item {1} has required qty {2} which is greater than warehouse qty {3}. <br> Please correct to proceed."
 			   			.format(item.idx,item.item_name,item.qty,item.actual_qty)))
 				frappe.throw(message)	
+
+@frappe.whitelist()
+def create_daily_customer_visit():
+	today = getdate(nowdate())
+	day=get_weekday(today)
+	customer_list = frappe.db.get_all("Customer",
+								   filters={"custom_single_day_visit":day,"disabled":0,"workflow_state":"Approved"},
+								   fields=["name"])
+	if len(customer_list)>0:
+		for customer in customer_list:
+			customer_visit_doc = frappe.new_doc("Customer Visit")
+			customer_visit_doc.date = today
+			customer_visit_doc.day = day
+			customer_visit_doc.customer = customer.name
+			customer_visit_doc.purpose_of_visit = ""
+			customer_visit_doc.run_method("set_missing_values")
+			customer_visit_doc.save(ignore_permissions=True)
+			customer_visit_doc.add_comment("Comment", text='Customer Visit is created by system on {0}'.format(nowdate()))	
+			customer_visit_doc.save(ignore_permissions=True)

@@ -74,8 +74,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Purpose of Visit",
-   "options": "\nSales\nCollection\nReturn",
-   "reqd": 1
+   "options": "\nSales\nCollection\nReturn"
   },
   {
    "fieldname": "column_break_ypc6o",
@@ -109,7 +108,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-05 09:31:19.628513",
+ "modified": "2025-03-06 10:36:45.808452",
  "modified_by": "Administrator",
  "module": "Marazim",
  "name": "Customer Visit",

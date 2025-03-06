@@ -9,8 +9,12 @@ from geopy import distance
 
 class CustomerVisit(Document):
 	def on_submit(self):
+		self.validate_purpose_of_visit()
 		self.validate_distance_from_current_location()
 
+	def validate_purpose_of_visit(self):
+		if self.purpose_of_visit == "" or self.purpose_of_visit == None:
+			frappe.throw(_("Please select Purpose of Visit before submit this form"))
 	def validate_distance_from_current_location(self):
 		if self.latitude and self.longitude:
 			current_latitude, current_longitude = self.latitude, self.longitude
