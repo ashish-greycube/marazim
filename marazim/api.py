@@ -238,7 +238,45 @@ def check_qty_against_warehouse(self,method):
 			if is_stock_item==1 and item.qty > item.actual_qty:
 				message=(_("Row {0} : item {1} has required qty {2} which is greater than warehouse qty {3}. <br> Please correct to proceed."
 			   			.format(item.idx,item.item_name,item.qty,item.actual_qty)))
-				frappe.throw(message)	
+				frappe.throw(message)
+
+PENDING_WORKFLOW_STATS_LIST = ["Pending", "Waiting Sales Manager Approval", "Waiting Supervisor Approval", "Waiting Stock Approval"]
+
+def check_available_qty_based_on_si_and_bin(self, method):
+	allow_negative_stock = frappe.db.get_single_value('Stock Settings', 'allow_negative_stock')
+	if allow_negative_stock == 0:
+		if self.update_stock == 1 and self.workflow_state in PENDING_WORKFLOW_STATS_LIST and self.docstatus == 0:
+			for item in self.items:
+				total_available_qty = 0
+
+				is_stock_item = frappe.db.get_value("Item", item.item_code, "is_stock_item")
+				if is_stock_item == 1 and item.warehouse:
+					bin = frappe.db.sql( "select actual_qty from `tabBin` where item_code = %s and warehouse = %s", (item.item_code, item.warehouse),	as_dict=1)
+					total_available_qty = bin[0].actual_qty if bin and len(bin) > 0 else 0
+
+					consumed_qty_details = frappe.db.sql("""SELECT
+													SUM(sii.qty) as consumed_qty
+												FROM
+													`tabSales Invoice Item` AS sii
+												INNER JOIN `tabSales Invoice` AS si ON
+													si.name = sii.parent
+													AND si.docstatus = 0
+												WHERE
+													sii.item_code = "{0}"
+													AND sii.warehouse = "{1}"
+													AND si.workflow_state IN {2}
+													AND sii.name != "{3}"
+												GROUP BY sii.item_code AND sii.warehouse""".format(item.item_code, item.warehouse, tuple(PENDING_WORKFLOW_STATS_LIST), item.name), as_dict=1)
+
+					if consumed_qty_details and len(consumed_qty_details) > 0:
+						total_available_qty = total_available_qty - (consumed_qty_details[0].consumed_qty or 0) 
+
+					if item.qty > total_available_qty:
+						message = (_("Row {0} : item {1} has required qty {2} which is greater than available qty {3}. <br> Please correct to proceed."
+							.format(item.idx, item.item_name, item.qty, total_available_qty)))
+						frappe.throw(message)
+
+
 
 @frappe.whitelist()
 def create_daily_customer_visit():

@@ -102,7 +102,8 @@ doc_events = {
         "on_submit":  "marazim.api.end_transit_in_stock_entry",
     },
 	"Sales Invoice": {
-        "validate":"marazim.api.check_qty_against_warehouse",
+        "validate":["marazim.api.check_qty_against_warehouse",
+                    "marazim.api.check_available_qty_based_on_si_and_bin"],
 		"on_submit": [
             "marazim.api.check_grace_days_and_amount_for_si",
             "marazim.api.auto_create_dn_from_si",
